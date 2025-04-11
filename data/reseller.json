@@ -1,1 +1,18 @@
-{"resellers":[]}
+{
+  "resellers": [
+    {
+      "username": "Gohan",
+      "password": "123456",
+      "credits": 2,
+      "id": 1,
+      "createdAt": "2025-04-11T01:11:58.394Z"
+    },
+    {
+      "username": "Lodit",
+      "password": "123456",
+      "credits": 1,
+      "id": 2,
+      "createdAt": "2025-04-11T01:16:58.598Z"
+    }
+  ]
+}

@@ -129,25 +129,26 @@ export default function Login() {
   const isPending = adminLoginMutation.isPending || resellerLoginMutation.isPending || registerMutation.isPending;
   
   return (
-    <div className="min-h-screen flex flex-col bg-background px-6 py-10 animate-in fade-in">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-background/90 px-6 py-10 animate-in fade-in">
       {isPending && <LoadingOverlay />}
       
       <motion.div 
-        className="flex justify-center mb-10"
+        className="flex flex-col items-center justify-center mb-4"
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="text-5xl font-bold text-center text-primary">
+        <div className="text-6xl font-bold text-center text-primary mb-1">
           <span className="inline-block transform hover:scale-105 transition-transform duration-300">X-Ruler</span>
+        </div>
+        <div className="flex items-center space-x-2 mt-2">
+          <div className="h-1 w-10 bg-primary/30 rounded-full"></div>
+          <FaKey className="text-primary/70" size={16} />
+          <div className="h-1 w-10 bg-primary/30 rounded-full"></div>
         </div>
       </motion.div>
       
-      <div className="my-6 text-center text-muted-foreground">
-        <p>Admin & Reseller Key Management</p>
-      </div>
-      
-      <div className="w-full max-w-sm mx-auto mt-4">
+      <div className="w-full max-w-sm mx-auto mt-6">
         {!showRegister ? (
           <>
             {/* Login Tabs */}
@@ -176,13 +177,27 @@ export default function Login() {
                 transition={{ duration: 0.3 }}
                 className="slide-up"
               >
-                <Card>
+                <Card className="border border-primary/10 shadow-lg shadow-primary/5">
                   <CardContent className="pt-6">
-                    <h2 className="text-xl font-medium mb-6">Admin Login</h2>
+                    <div className="text-center mb-6">
+                      <motion.div 
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4"
+                      >
+                        <FaUser className="h-6 w-6 text-primary" />
+                      </motion.div>
+                      <h2 className="text-2xl font-semibold">Admin Login</h2>
+                      <p className="text-sm text-muted-foreground mt-1">Access the control panel</p>
+                    </div>
                     
                     <form onSubmit={handleAdminLogin}>
                       <div className="mb-4">
-                        <Label htmlFor="admin-username" className="text-sm font-medium text-muted-foreground mb-2">
+                        <Label htmlFor="admin-username" className="text-sm font-medium mb-2 flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
                           Username
                         </Label>
                         <Input 
@@ -191,12 +206,15 @@ export default function Login() {
                           placeholder="admin" 
                           value={adminUsername}
                           onChange={(e) => setAdminUsername(e.target.value)}
-                          className="bg-background"
+                          className="bg-background/60 ring-offset-primary focus-visible:ring-primary/20"
                         />
                       </div>
                       
                       <div className="mb-6">
-                        <Label htmlFor="admin-password" className="text-sm font-medium text-muted-foreground mb-2">
+                        <Label htmlFor="admin-password" className="text-sm font-medium mb-2 flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          </svg>
                           Password
                         </Label>
                         <Input 
@@ -205,16 +223,18 @@ export default function Login() {
                           placeholder="••••••••" 
                           value={adminPassword}
                           onChange={(e) => setAdminPassword(e.target.value)}
-                          className="bg-background"
+                          className="bg-background/60 ring-offset-primary focus-visible:ring-primary/20"
                         />
                       </div>
                       
                       <Button 
                         type="submit" 
-                        className="w-full"
+                        className="w-full py-6 text-base font-medium"
                       >
-                        <span>Login</span>
-                        <FaUser className="ml-2" />
+                        <span>Login to Dashboard</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
                       </Button>
                     </form>
                   </CardContent>
@@ -229,13 +249,27 @@ export default function Login() {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card>
+                <Card className="border border-primary/10 shadow-lg shadow-primary/5">
                   <CardContent className="pt-6">
-                    <h2 className="text-xl font-medium mb-6">Reseller Login</h2>
+                    <div className="text-center mb-6">
+                      <motion.div 
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4"
+                      >
+                        <FaKey className="h-6 w-6 text-primary" />
+                      </motion.div>
+                      <h2 className="text-2xl font-semibold">Reseller Login</h2>
+                      <p className="text-sm text-muted-foreground mt-1">Access your key management</p>
+                    </div>
                     
                     <form onSubmit={handleResellerLogin}>
                       <div className="mb-4">
-                        <Label htmlFor="reseller-username" className="text-sm font-medium text-muted-foreground mb-2">
+                        <Label htmlFor="reseller-username" className="text-sm font-medium mb-2 flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
                           Username
                         </Label>
                         <Input 
@@ -244,12 +278,15 @@ export default function Login() {
                           placeholder="Your username" 
                           value={resellerUsername}
                           onChange={(e) => setResellerUsername(e.target.value)}
-                          className="bg-background"
+                          className="bg-background/60 ring-offset-primary focus-visible:ring-primary/20"
                         />
                       </div>
                       
                       <div className="mb-6">
-                        <Label htmlFor="reseller-password" className="text-sm font-medium text-muted-foreground mb-2">
+                        <Label htmlFor="reseller-password" className="text-sm font-medium mb-2 flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          </svg>
                           Password
                         </Label>
                         <Input 
@@ -258,24 +295,27 @@ export default function Login() {
                           placeholder="••••••••" 
                           value={resellerPassword}
                           onChange={(e) => setResellerPassword(e.target.value)}
-                          className="bg-background"
+                          className="bg-background/60 ring-offset-primary focus-visible:ring-primary/20"
                         />
                       </div>
                       
                       <Button 
                         type="submit" 
-                        className="w-full"
+                        className="w-full py-6 text-base font-medium"
                       >
-                        <span>Login</span>
-                        <FaUser className="ml-2" />
+                        <span>Login to Dashboard</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
                       </Button>
                       
-                      <div className="mt-4 text-center">
+                      <div className="mt-6 text-center">
                         <Button
-                          variant="link"
-                          className="text-secondary hover:text-opacity-80 text-sm font-medium"
+                          variant="outline"
+                          className="text-primary hover:text-primary/90 text-sm font-medium border-primary/20 hover:bg-primary/5"
                           onClick={() => setShowRegister(true)}
                         >
+                          <FaUserPlus className="mr-2 h-4 w-4" />
                           Register as Reseller
                         </Button>
                       </div>
@@ -292,25 +332,39 @@ export default function Login() {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
-            <Card>
+            <Card className="border border-primary/10 shadow-lg shadow-primary/5">
               <CardContent className="pt-6">
-                <div className="flex items-center mb-6">
+                <div className="flex items-center justify-center mb-6 relative">
                   <Button 
                     variant="ghost" 
-                    className="mr-2 p-2" 
+                    className="absolute left-0 p-2 text-muted-foreground hover:text-primary" 
                     onClick={() => setShowRegister(false)}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left">
                       <path d="m12 19-7-7 7-7"/>
                       <path d="M19 12H5"/>
                     </svg>
                   </Button>
-                  <h2 className="text-xl font-medium">Reseller Registration</h2>
+                  <div className="text-center">
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-secondary/10 mb-4"
+                    >
+                      <FaUserPlus className="h-6 w-6 text-secondary" />
+                    </motion.div>
+                    <h2 className="text-2xl font-semibold">Reseller Registration</h2>
+                    <p className="text-sm text-muted-foreground mt-1">Create your reseller account</p>
+                  </div>
                 </div>
                 
                 <form onSubmit={handleRegister}>
                   <div className="mb-4">
-                    <Label htmlFor="register-username" className="text-sm font-medium text-muted-foreground mb-2">
+                    <Label htmlFor="register-username" className="text-sm font-medium mb-2 flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
                       Username
                     </Label>
                     <Input 
@@ -319,12 +373,15 @@ export default function Login() {
                       placeholder="Choose a username" 
                       value={registerUsername}
                       onChange={(e) => setRegisterUsername(e.target.value)}
-                      className="bg-background"
+                      className="bg-background/60 ring-offset-secondary focus-visible:ring-secondary/20"
                     />
                   </div>
                   
                   <div className="mb-4">
-                    <Label htmlFor="register-password" className="text-sm font-medium text-muted-foreground mb-2">
+                    <Label htmlFor="register-password" className="text-sm font-medium mb-2 flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
                       Password
                     </Label>
                     <Input 
@@ -333,12 +390,15 @@ export default function Login() {
                       placeholder="Create password" 
                       value={registerPassword}
                       onChange={(e) => setRegisterPassword(e.target.value)}
-                      className="bg-background"
+                      className="bg-background/60 ring-offset-secondary focus-visible:ring-secondary/20"
                     />
                   </div>
                   
                   <div className="mb-6">
-                    <Label htmlFor="referral-token" className="text-sm font-medium text-muted-foreground mb-2">
+                    <Label htmlFor="referral-token" className="text-sm font-medium mb-2 flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                      </svg>
                       Referral Token
                     </Label>
                     <Input 
@@ -347,17 +407,19 @@ export default function Login() {
                       placeholder="Enter admin provided token" 
                       value={referralToken}
                       onChange={(e) => setReferralToken(e.target.value)}
-                      className="bg-background"
+                      className="bg-background/60 ring-offset-secondary focus-visible:ring-secondary/20"
                     />
                   </div>
                   
                   <Button 
                     type="submit" 
                     variant="secondary"
-                    className="w-full"
+                    className="w-full py-6 text-base font-medium"
                   >
-                    <span>Register Account</span>
-                    <FaUserPlus className="ml-2" />
+                    <span>Create Account</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
                   </Button>
                 </form>
               </CardContent>

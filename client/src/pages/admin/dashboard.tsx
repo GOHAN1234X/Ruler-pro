@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NavBar } from '@/components/nav-bar';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { FaClipboard, FaUsers, FaKey } from 'react-icons/fa';
+import { FaClipboard, FaUsers, FaKey, FaCheck, FaTimes, FaTicketAlt } from 'react-icons/fa';
 import { LoadingOverlay } from '@/components/loading-overlay';
+import { Badge } from '@/components/ui/badge';
+import { motion } from 'framer-motion';
 
 export default function AdminDashboard() {
   const { toast } = useToast();
@@ -31,6 +33,15 @@ export default function AdminDashboard() {
     queryKey: ['/api/admin/keys'] 
   });
   
+  // Get referral tokens query
+  const {
+    data: tokensData,
+    isLoading: tokensLoading,
+    refetch: refetchTokens
+  } = useQuery({
+    queryKey: ['/api/admin/referral-tokens']
+  });
+  
   // Generate referral token mutation
   const generateTokenMutation = useMutation({
     mutationFn: async () => {
@@ -39,6 +50,7 @@ export default function AdminDashboard() {
     },
     onSuccess: (data) => {
       setReferralToken(data.token.token);
+      refetchTokens();
       toast({
         title: 'Token Generated',
         description: 'New referral token has been created',
@@ -132,13 +144,14 @@ export default function AdminDashboard() {
     }
   };
   
-  const isLoading = resellersLoading || keysLoading || 
+  const isLoading = resellersLoading || keysLoading || tokensLoading || 
                     generateTokenMutation.isPending || 
                     addCreditsMutation.isPending || 
                     deleteResellerMutation.isPending;
   
   const resellers = resellersData?.resellers || [];
   const keys = keysData?.keys || [];
+  const tokens = tokensData?.tokens || [];
   
   return (
     <div className="min-h-screen bg-background">
