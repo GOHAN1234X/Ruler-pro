@@ -306,6 +306,71 @@ export default function AdminDashboard() {
         </div>
         
         <div className="mb-6">
+          <h2 className="text-lg font-medium mb-4">Referral Tokens</h2>
+          
+          <Card className="mb-6">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">All Generated Tokens</CardTitle>
+              <CardDescription>
+                Tokens used by resellers to register their accounts
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="bg-background rounded-lg overflow-hidden">
+                {tokens.length === 0 ? (
+                  <div className="p-4 text-center text-muted-foreground">
+                    No referral tokens found
+                  </div>
+                ) : (
+                  <div className="overflow-auto max-h-96">
+                    {tokens.map((token: any) => (
+                      <motion.div
+                        key={token.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="border-b border-border p-3 text-sm"
+                      >
+                        <div className="flex flex-wrap justify-between items-center">
+                          <div className="flex items-center mb-1">
+                            <div className="font-medium mr-2 flex items-center">
+                              <FaTicketAlt className="mr-2 text-primary/70" />
+                              {token.token}
+                            </div>
+                            <Badge variant={token.used ? "destructive" : "default"} className="text-xs">
+                              {token.used ? (
+                                <span className="flex items-center">
+                                  <FaTimes className="mr-1" size={10} />
+                                  Used
+                                </span>
+                              ) : (
+                                <span className="flex items-center">
+                                  <FaCheck className="mr-1" size={10} />
+                                  Available
+                                </span>
+                              )}
+                            </Badge>
+                          </div>
+                          <div className="text-muted-foreground text-xs">
+                            <span>Created: {new Date(token.createdAt).toLocaleDateString()}</span>
+                            {token.used && (
+                              <>
+                                <span className="mx-2">|</span>
+                                <span>Used by: <span className="font-medium">{token.usedBy}</span></span>
+                                <span className="mx-2">|</span>
+                                <span>Used on: {new Date(token.usedAt).toLocaleDateString()}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+          
           <h2 className="text-lg font-medium mb-4">Key Management</h2>
           
           <Card>
