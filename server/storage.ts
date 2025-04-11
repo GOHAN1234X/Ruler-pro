@@ -39,6 +39,7 @@ export interface IStorage {
   getKeysByReseller(reseller: string): Promise<Key[]>;
   getAllKeys(): Promise<Key[]>;
   deactivateKey(id: number): Promise<Key | undefined>;
+  resetKey(id: number, expiryDays: number): Promise<Key | undefined>;
   
   // Device registration methods
   registerDevice(registration: InsertDeviceRegistration): Promise<DeviceRegistration>;

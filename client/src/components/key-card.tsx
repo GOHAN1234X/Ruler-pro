@@ -1,17 +1,18 @@
 import { Key } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FaKey, FaCopy, FaTrash } from "react-icons/fa";
+import { FaKey, FaCopy, FaTrash, FaRedo } from "react-icons/fa";
 import { motion } from "framer-motion";
 
 interface KeyCardProps {
   keyData: Key;
   onCopy: (key: string) => void;
   onRevoke: (keyId: number) => void;
+  onReset?: (keyId: number) => void;
   detailed?: boolean;
 }
 
-export function KeyCard({ keyData, onCopy, onRevoke, detailed = false }: KeyCardProps) {
+export function KeyCard({ keyData, onCopy, onRevoke, onReset, detailed = false }: KeyCardProps) {
   const isActive = keyData.isActive && new Date() < new Date(keyData.expiresAt);
   const isExpiring = isActive && new Date(keyData.expiresAt).getTime() - new Date().getTime() < 7 * 24 * 60 * 60 * 1000; // 7 days
   const isExpired = new Date() >= new Date(keyData.expiresAt);
@@ -71,7 +72,7 @@ export function KeyCard({ keyData, onCopy, onRevoke, detailed = false }: KeyCard
             </div>
           )}
           
-          <div className="mt-3 flex items-center justify-between">
+          <div className="mt-3 flex items-center justify-between flex-wrap gap-2">
             <Button 
               variant="link" 
               className="text-primary text-sm flex items-center p-0"
@@ -81,16 +82,29 @@ export function KeyCard({ keyData, onCopy, onRevoke, detailed = false }: KeyCard
               <span>Copy Key</span>
             </Button>
             
-            {isActive && (
-              <Button 
-                variant="link" 
-                className="text-destructive text-sm flex items-center p-0"
-                onClick={() => onRevoke(keyData.id)}
-              >
-                <FaTrash className="mr-1" size={12} />
-                <span>Revoke</span>
-              </Button>
-            )}
+            <div className="flex space-x-4">
+              {onReset && (
+                <Button 
+                  variant="link" 
+                  className="text-amber-500 text-sm flex items-center p-0"
+                  onClick={() => onReset(keyData.id)}
+                >
+                  <FaRedo className="mr-1" size={12} />
+                  <span>Reset Key</span>
+                </Button>
+              )}
+              
+              {isActive && (
+                <Button 
+                  variant="link" 
+                  className="text-destructive text-sm flex items-center p-0"
+                  onClick={() => onRevoke(keyData.id)}
+                >
+                  <FaTrash className="mr-1" size={12} />
+                  <span>Revoke</span>
+                </Button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
