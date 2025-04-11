@@ -145,7 +145,7 @@ export default function ResellerKeys() {
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
   
-  const isLoading = keysLoading || revokeKeyMutation.isPending;
+  const isLoading = keysLoading || revokeKeyMutation.isPending || resetKeyMutation.isPending;
   
   return (
     <div className="min-h-screen bg-background">
@@ -162,6 +162,44 @@ export default function ResellerKeys() {
           { id: 'account', label: 'Account', icon: 'account_circle', href: '/reseller/account' }
         ]}
       />
+      
+      {/* Reset Key Dialog */}
+      <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset Key</DialogTitle>
+            <DialogDescription>
+              This will reset the device binding and expiry date for this key. 
+              The key will work on new devices again.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="expiryDays">New Expiry (days)</Label>
+              <Input
+                id="expiryDays"
+                type="number"
+                min="1"
+                value={expiryDays}
+                onChange={(e) => setExpiryDays(e.target.value)}
+                placeholder="30"
+                className="w-full"
+              />
+              <p className="text-sm text-muted-foreground">
+                Enter the number of days before the key will expire
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetDialogOpen(false)}>Cancel</Button>
+            <Button onClick={confirmKeyReset} disabled={resetKeyMutation.isPending}>
+              {resetKeyMutation.isPending ? "Resetting..." : "Reset Key"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       <div className="px-6 py-4 pb-20">
         <h1 className="text-2xl font-bold mb-6">Key Management</h1>
@@ -226,6 +264,7 @@ export default function ResellerKeys() {
                 keyData={key}
                 onCopy={handleCopyKey}
                 onRevoke={handleRevokeKey}
+                onReset={handleResetKey}
                 detailed
               />
             ))}
