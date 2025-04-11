@@ -83,15 +83,38 @@ export class MemStorage implements IStorage {
   
   // Admin methods
   async getAdmin(username: string): Promise<Admin | undefined> {
+    // Force reload from admin.json to ensure we have the latest credentials
+    await this.loadAdminData();
     return this.admins.get(username);
+  }
+  
+  private async loadAdminData(): Promise<void> {
+    const adminFile = path.join(this.dataDir, 'admin.json');
+    if (fs.existsSync(adminFile)) {
+      try {
+        const adminData = await fs.promises.readFile(adminFile, 'utf8');
+        const { admin } = JSON.parse(adminData);
+        if (admin) {
+          this.admins.clear(); // Clear existing admin
+          this.admins.set(admin.username, admin);
+        }
+      } catch (error) {
+        console.error('Failed to load admin data:', error);
+      }
+    }
   }
   
   // Reseller methods
   async getReseller(id: number): Promise<Reseller | undefined> {
+    // Force reload from reseller.json to ensure we have the latest data
+    await this.loadResellers();
     return this.resellers.get(id);
   }
   
   async getResellerByUsername(username: string): Promise<Reseller | undefined> {
+    // Force reload from reseller.json to ensure we have the latest data
+    await this.loadResellers();
+    
     for (const reseller of this.resellers.values()) {
       if (reseller.username === username) {
         return reseller;
@@ -101,10 +124,54 @@ export class MemStorage implements IStorage {
   }
   
   async getAllResellers(): Promise<Reseller[]> {
+    // Force reload from reseller.json to ensure we have the latest data
+    await this.loadResellers();
     return Array.from(this.resellers.values());
   }
   
+  private async loadResellers(): Promise<void> {
+    const resellerFile = path.join(this.dataDir, 'reseller.json');
+    if (fs.existsSync(resellerFile)) {
+      try {
+        const resellerData = await fs.promises.readFile(resellerFile, 'utf8');
+        const { resellers } = JSON.parse(resellerData);
+        
+        // Clear existing resellers
+        this.resellers.clear();
+        
+        if (resellers && Array.isArray(resellers)) {
+          for (const reseller of resellers) {
+            this.resellers.set(reseller.id, {
+              ...reseller,
+              createdAt: new Date(reseller.createdAt)
+            });
+          }
+          
+          if (resellers.length > 0) {
+            this.currentResellerId = Math.max(...resellers.map((r: Reseller) => r.id), 0) + 1;
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load reseller data:', error);
+      }
+    }
+  }
+  
+  private async saveResellers(): Promise<void> {
+    await this.ensureDataDirectory();
+    
+    const resellerFile = path.join(this.dataDir, 'reseller.json');
+    const resellerData = {
+      resellers: Array.from(this.resellers.values())
+    };
+    
+    await fs.promises.writeFile(resellerFile, JSON.stringify(resellerData, null, 2), 'utf8');
+  }
+  
   async createReseller(reseller: InsertReseller): Promise<Reseller> {
+    // First load existing resellers to get the latest data
+    await this.loadResellers();
+    
     const id = this.currentResellerId++;
     const newReseller: Reseller = { 
       ...reseller, 
@@ -114,17 +181,22 @@ export class MemStorage implements IStorage {
     };
     this.resellers.set(id, newReseller);
     
-    // Create reseller json file
+    // Create reseller json file for storing keys
     await this.ensureDataDirectory();
-    const resellerFile = path.join(this.dataDir, `${newReseller.username}.json`);
-    await fs.promises.writeFile(resellerFile, JSON.stringify({ keys: [] }), 'utf8');
+    const resellerKeyFile = path.join(this.dataDir, `${newReseller.username}.json`);
+    await fs.promises.writeFile(resellerKeyFile, JSON.stringify({ keys: [] }), 'utf8');
     
-    await this.saveData();
+    // Save reseller data to reseller.json
+    await this.saveResellers();
+    
     return newReseller;
   }
   
   async updateResellerCredits(id: number, credits: number): Promise<Reseller | undefined> {
-    const reseller = await this.getReseller(id);
+    // Force reload from reseller.json first
+    await this.loadResellers();
+    
+    const reseller = this.resellers.get(id);
     if (!reseller) {
       return undefined;
     }
@@ -132,29 +204,40 @@ export class MemStorage implements IStorage {
     const updatedReseller: Reseller = { ...reseller, credits };
     this.resellers.set(id, updatedReseller);
     
-    await this.saveData();
+    // Save directly to reseller.json
+    await this.saveResellers();
+    
     return updatedReseller;
   }
   
   async deleteReseller(id: number): Promise<boolean> {
-    const reseller = await this.getReseller(id);
+    // Force reload from reseller.json first
+    await this.loadResellers();
+    
+    const reseller = this.resellers.get(id);
     if (!reseller) {
       return false;
     }
     
-    // Delete reseller json file
-    const resellerFile = path.join(this.dataDir, `${reseller.username}.json`);
-    if (fs.existsSync(resellerFile)) {
-      await fs.promises.unlink(resellerFile);
+    // Delete reseller's key file
+    const resellerKeyFile = path.join(this.dataDir, `${reseller.username}.json`);
+    if (fs.existsSync(resellerKeyFile)) {
+      await fs.promises.unlink(resellerKeyFile);
     }
     
     const result = this.resellers.delete(id);
-    await this.saveData();
+    
+    // Save changes to reseller.json
+    await this.saveResellers();
+    
     return result;
   }
   
   // Referral token methods
   async createReferralToken(token: InsertReferralToken): Promise<ReferralToken> {
+    // First load any existing tokens to make sure we have the latest data
+    await this.loadReferralTokens();
+    
     const id = this.currentReferralTokenId++;
     const newToken: ReferralToken = { 
       ...token, 
@@ -166,16 +249,24 @@ export class MemStorage implements IStorage {
     };
     
     this.referralTokens.set(token.token, newToken);
-    await this.saveData();
+    
+    // Save directly to token.json
+    await this.saveReferralTokens();
+    
     return newToken;
   }
   
   async getReferralToken(token: string): Promise<ReferralToken | undefined> {
+    // Force reload from token.json to ensure we have the latest data
+    await this.loadReferralTokens();
     return this.referralTokens.get(token);
   }
   
   async useReferralToken(token: string, username: string): Promise<ReferralToken | undefined> {
-    const referralToken = await this.getReferralToken(token);
+    // Force reload from token.json first
+    await this.loadReferralTokens();
+    
+    const referralToken = this.referralTokens.get(token);
     if (!referralToken || referralToken.used) {
       return undefined;
     }
@@ -188,17 +279,68 @@ export class MemStorage implements IStorage {
     };
     
     this.referralTokens.set(token, updatedToken);
-    await this.saveData();
+    
+    // Save to token.json
+    await this.saveReferralTokens();
+    
     return updatedToken;
   }
   
   async getAllReferralTokens(): Promise<ReferralToken[]> {
+    // Force reload from token.json to ensure we have the latest data
+    await this.loadReferralTokens();
     return Array.from(this.referralTokens.values());
+  }
+  
+  private async loadReferralTokens(): Promise<void> {
+    const tokenFile = path.join(this.dataDir, 'token.json');
+    if (fs.existsSync(tokenFile)) {
+      try {
+        const tokenData = await fs.promises.readFile(tokenFile, 'utf8');
+        const { tokens } = JSON.parse(tokenData);
+        
+        // Clear existing tokens
+        this.referralTokens.clear();
+        
+        if (tokens && Array.isArray(tokens)) {
+          for (const token of tokens) {
+            this.referralTokens.set(token.token, {
+              ...token,
+              createdAt: new Date(token.createdAt),
+              usedAt: token.usedAt ? new Date(token.usedAt) : null
+            });
+          }
+          
+          if (tokens.length > 0) {
+            this.currentReferralTokenId = Math.max(...tokens.map((t: ReferralToken) => t.id), 0) + 1;
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load token data:', error);
+      }
+    }
+  }
+  
+  private async saveReferralTokens(): Promise<void> {
+    await this.ensureDataDirectory();
+    
+    const tokenFile = path.join(this.dataDir, 'token.json');
+    const tokenData = {
+      tokens: Array.from(this.referralTokens.values())
+    };
+    
+    await fs.promises.writeFile(tokenFile, JSON.stringify(tokenData, null, 2), 'utf8');
   }
   
   // Key methods
   async createKey(key: InsertKey): Promise<Key> {
-    const id = this.currentKeyId++;
+    // Load all keys first to ensure we have the latest IDs
+    const allKeys = await this.getAllKeys();
+    
+    // Find the maximum key ID and increment
+    const maxId = allKeys.length > 0 ? Math.max(...allKeys.map(k => k.id)) : 0;
+    const id = maxId + 1;
+    
     const newKey: Key = { 
       ...key, 
       id,
@@ -206,36 +348,68 @@ export class MemStorage implements IStorage {
       createdAt: new Date()
     };
     
+    // Add to main storage
     this.keys.set(id, newKey);
     
-    // Add to reseller's json file
+    // Add to reseller's json file (this is now the source of truth for reseller keys)
     await this.updateResellerKeyFile(newKey.createdBy, newKey);
     
-    await this.saveData();
     return newKey;
   }
   
   async getKey(key: string): Promise<Key | undefined> {
-    for (const k of this.keys.values()) {
-      if (k.key === key) {
-        return k;
+    // Load all resellers first to get usernames
+    await this.loadResellers();
+    const resellers = await this.getAllResellers();
+    
+    // Check each reseller's key file for the key
+    for (const reseller of resellers) {
+      const keys = await this.getKeysByReseller(reseller.username);
+      const foundKey = keys.find(k => k.key === key);
+      if (foundKey) {
+        return foundKey;
       }
     }
+    
     return undefined;
   }
   
   async getKeyById(id: number): Promise<Key | undefined> {
-    return this.keys.get(id);
+    // Load all resellers first to get usernames
+    await this.loadResellers();
+    const resellers = await this.getAllResellers();
+    
+    // Check each reseller's key file for the key with the given ID
+    for (const reseller of resellers) {
+      const keys = await this.getKeysByReseller(reseller.username);
+      const foundKey = keys.find(k => k.id === id);
+      if (foundKey) {
+        return foundKey;
+      }
+    }
+    
+    return undefined;
   }
   
   async getKeysByReseller(reseller: string): Promise<Key[]> {
-    const resellerKeys: Key[] = [];
-    for (const key of this.keys.values()) {
-      if (key.createdBy === reseller) {
-        resellerKeys.push(key);
+    // Load directly from reseller's key file
+    const resellerFile = path.join(this.dataDir, `${reseller}.json`);
+    if (fs.existsSync(resellerFile)) {
+      try {
+        const keyData = await fs.promises.readFile(resellerFile, 'utf8');
+        const data = JSON.parse(keyData);
+        if (data.keys && Array.isArray(data.keys)) {
+          return data.keys.map((key: any) => ({
+            ...key,
+            createdAt: new Date(key.createdAt),
+            expiresAt: new Date(key.expiresAt)
+          }));
+        }
+      } catch (error) {
+        console.error(`Failed to load keys for reseller ${reseller}:`, error);
       }
     }
-    return resellerKeys;
+    return [];
   }
   
   async getAllKeys(): Promise<Key[]> {
@@ -251,10 +425,9 @@ export class MemStorage implements IStorage {
     const updatedKey: Key = { ...key, isActive: false };
     this.keys.set(id, updatedKey);
     
-    // Update in reseller's json file
+    // Update in reseller's json file (this is now the source of truth for keys)
     await this.updateResellerKeyFile(updatedKey.createdBy, updatedKey);
     
-    await this.saveData();
     return updatedKey;
   }
   
