@@ -46,7 +46,8 @@ export function NavBar({ title, role, activeItem, items }: NavBarProps) {
         variant: "default",
       });
       
-      setLocation('/');
+      // Clear any cached data
+      window.location.href = '/';
     } catch (error) {
       toast({
         title: "Logout Failed",

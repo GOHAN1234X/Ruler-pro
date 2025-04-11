@@ -77,12 +77,6 @@ export class MemStorage implements IStorage {
     
     this.dataDir = path.join(process.cwd(), 'data');
     
-    // Initialize with admin credentials
-    this.admins.set('admin', {
-      username: 'admin',
-      password: '&-+('
-    });
-    
     // Load data from files if they exist
     this.loadData();
   }
@@ -112,7 +106,12 @@ export class MemStorage implements IStorage {
   
   async createReseller(reseller: InsertReseller): Promise<Reseller> {
     const id = this.currentResellerId++;
-    const newReseller: Reseller = { ...reseller, id };
+    const newReseller: Reseller = { 
+      ...reseller, 
+      id, 
+      credits: reseller.credits || 0,  // Ensure credits is not undefined
+      createdAt: new Date()
+    };
     this.resellers.set(id, newReseller);
     
     // Create reseller json file
@@ -203,7 +202,8 @@ export class MemStorage implements IStorage {
     const newKey: Key = { 
       ...key, 
       id,
-      isActive: true
+      isActive: true,
+      createdAt: new Date()
     };
     
     this.keys.set(id, newKey);
@@ -316,35 +316,67 @@ export class MemStorage implements IStorage {
       );
     }
     
-    // Load storage state
-    const storageFile = path.join(this.dataDir, 'storage.json');
-    if (fs.existsSync(storageFile)) {
+    // Load referral tokens
+    const tokenFile = path.join(this.dataDir, 'token.json');
+    if (fs.existsSync(tokenFile)) {
       try {
-        const storageData = await fs.promises.readFile(storageFile, 'utf8');
-        const data = JSON.parse(storageData);
-        
-        // Load resellers
-        if (data.resellers) {
-          for (const reseller of data.resellers) {
-            this.resellers.set(reseller.id, {
-              ...reseller,
-              createdAt: new Date(reseller.createdAt)
-            });
-          }
-          this.currentResellerId = Math.max(...data.resellers.map((r: Reseller) => r.id), 0) + 1;
-        }
-        
-        // Load referral tokens
-        if (data.referralTokens) {
-          for (const token of data.referralTokens) {
+        const tokenData = await fs.promises.readFile(tokenFile, 'utf8');
+        const { tokens } = JSON.parse(tokenData);
+        if (tokens && Array.isArray(tokens)) {
+          for (const token of tokens) {
             this.referralTokens.set(token.token, {
               ...token,
               createdAt: new Date(token.createdAt),
               usedAt: token.usedAt ? new Date(token.usedAt) : null
             });
           }
-          this.currentReferralTokenId = Math.max(...data.referralTokens.map((t: ReferralToken) => t.id), 0) + 1;
+          this.currentReferralTokenId = Math.max(...tokens.map((t: ReferralToken) => t.id), 0) + 1;
         }
+      } catch (error) {
+        console.error('Failed to load token data:', error);
+      }
+    } else {
+      // Create token file if it doesn't exist
+      await fs.promises.writeFile(
+        tokenFile, 
+        JSON.stringify({ tokens: [] }), 
+        'utf8'
+      );
+    }
+    
+    // Load resellers
+    const resellerFile = path.join(this.dataDir, 'reseller.json');
+    if (fs.existsSync(resellerFile)) {
+      try {
+        const resellerData = await fs.promises.readFile(resellerFile, 'utf8');
+        const { resellers } = JSON.parse(resellerData);
+        if (resellers && Array.isArray(resellers)) {
+          for (const reseller of resellers) {
+            this.resellers.set(reseller.id, {
+              ...reseller,
+              createdAt: new Date(reseller.createdAt)
+            });
+          }
+          this.currentResellerId = Math.max(...resellers.map((r: Reseller) => r.id), 0) + 1;
+        }
+      } catch (error) {
+        console.error('Failed to load reseller data:', error);
+      }
+    } else {
+      // Create reseller file if it doesn't exist
+      await fs.promises.writeFile(
+        resellerFile, 
+        JSON.stringify({ resellers: [] }), 
+        'utf8'
+      );
+    }
+    
+    // Load storage state (for keys and device registrations)
+    const storageFile = path.join(this.dataDir, 'storage.json');
+    if (fs.existsSync(storageFile)) {
+      try {
+        const storageData = await fs.promises.readFile(storageFile, 'utf8');
+        const data = JSON.parse(storageData);
         
         // Load keys
         if (data.keys) {
@@ -373,20 +405,64 @@ export class MemStorage implements IStorage {
         console.error('Failed to load storage data:', error);
       }
     }
+    
+    // Load individual reseller key files
+    const resellerUsernames = Array.from(this.resellers.values()).map(r => r.username);
+    for (const username of resellerUsernames) {
+      const resellerKeyFile = path.join(this.dataDir, `${username}.json`);
+      if (fs.existsSync(resellerKeyFile)) {
+        try {
+          const keyData = await fs.promises.readFile(resellerKeyFile, 'utf8');
+          const data = JSON.parse(keyData);
+          if (data.keys && Array.isArray(data.keys)) {
+            // Update keys in the main storage based on each reseller's file
+            for (const key of data.keys) {
+              this.keys.set(key.id, {
+                ...key,
+                createdAt: new Date(key.createdAt),
+                expiresAt: new Date(key.expiresAt)
+              });
+            }
+          }
+        } catch (error) {
+          console.error(`Failed to load keys for reseller ${username}:`, error);
+        }
+      }
+    }
   }
   
   private async saveData() {
     await this.ensureDataDirectory();
     
+    // Save admin data
+    const adminFile = path.join(this.dataDir, 'admin.json');
+    const adminData = {
+      admin: Array.from(this.admins.values())[0] // Store the first admin (we only have one)
+    };
+    await fs.promises.writeFile(adminFile, JSON.stringify(adminData, null, 2), 'utf8');
+    
+    // Save referral tokens
+    const tokenFile = path.join(this.dataDir, 'token.json');
+    const tokenData = {
+      tokens: Array.from(this.referralTokens.values())
+    };
+    await fs.promises.writeFile(tokenFile, JSON.stringify(tokenData, null, 2), 'utf8');
+    
+    // Save resellers
+    const resellerFile = path.join(this.dataDir, 'reseller.json');
+    const resellerData = {
+      resellers: Array.from(this.resellers.values())
+    };
+    await fs.promises.writeFile(resellerFile, JSON.stringify(resellerData, null, 2), 'utf8');
+    
+    // Save storage (for other data)
     const storageFile = path.join(this.dataDir, 'storage.json');
-    const data = {
-      resellers: Array.from(this.resellers.values()),
-      referralTokens: Array.from(this.referralTokens.values()),
+    const storageData = {
       keys: Array.from(this.keys.values()),
       deviceRegistrations: Array.from(this.deviceRegistrations.values())
     };
     
-    await fs.promises.writeFile(storageFile, JSON.stringify(data, null, 2), 'utf8');
+    await fs.promises.writeFile(storageFile, JSON.stringify(storageData, null, 2), 'utf8');
   }
   
   async updateResellerKeyFile(username: string, key: Key) {

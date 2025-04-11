@@ -1,0 +1,16 @@
+{
+  "resellers": [],
+  "referralTokens": [
+    {
+      "token": "X-R-T0K3N-AEB0C0A4BE0DE500337A2108",
+      "createdBy": "admin",
+      "id": 1,
+      "used": false,
+      "createdAt": "2025-04-11T01:00:03.669Z",
+      "usedBy": null,
+      "usedAt": null
+    }
+  ],
+  "keys": [],
+  "deviceRegistrations": []
+}
