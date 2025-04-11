@@ -10,12 +10,26 @@ import { apiRequest } from '@/lib/queryClient';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { LoadingOverlay } from '@/components/loading-overlay';
 import { KeyCard } from '@/components/key-card';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 
 export default function ResellerKeys() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'active', 'expired', 'revoked'
+  
+  // State for reset key dialog
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [keyToReset, setKeyToReset] = useState<number | null>(null);
+  const [expiryDays, setExpiryDays] = useState('30');
   
   // Get reseller's keys query
   const { 
@@ -48,9 +62,51 @@ export default function ResellerKeys() {
     }
   });
   
+  // Reset key mutation
+  const resetKeyMutation = useMutation({
+    mutationFn: async ({ keyId, days }: { keyId: number, days: string }) => {
+      const res = await apiRequest('POST', `/api/reseller/keys/${keyId}/reset`, { expiryDays: days });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/reseller/keys'] });
+      toast({
+        title: 'Key Reset',
+        description: 'The key has been reset successfully. Device binding and expiry have been updated.',
+        variant: 'default',
+      });
+      setResetDialogOpen(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Failed to Reset Key',
+        description: error.message || 'Please try again',
+        variant: 'destructive',
+      });
+    }
+  });
+  
   const handleRevokeKey = (keyId: number) => {
     if (confirm('Are you sure you want to revoke this key? This action cannot be undone.')) {
       revokeKeyMutation.mutate(keyId);
+    }
+  };
+  
+  const handleResetKey = (keyId: number) => {
+    // Open dialog to enter expiry days
+    setKeyToReset(keyId);
+    setResetDialogOpen(true);
+  };
+  
+  const confirmKeyReset = () => {
+    if (keyToReset && !isNaN(parseInt(expiryDays)) && parseInt(expiryDays) > 0) {
+      resetKeyMutation.mutate({ keyId: keyToReset, days: expiryDays });
+    } else {
+      toast({
+        title: 'Invalid Input',
+        description: 'Please enter a valid number of days',
+        variant: 'destructive',
+      });
     }
   };
   

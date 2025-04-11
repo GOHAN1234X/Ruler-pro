@@ -499,6 +499,55 @@ export class MemStorage implements IStorage {
     return updatedKey;
   }
   
+  async resetKey(id: number, expiryDays: number): Promise<Key | undefined> {
+    const key = await this.getKeyById(id);
+    if (!key) {
+      return undefined;
+    }
+    
+    // Calculate new expiry date
+    const now = new Date();
+    const expiresAt = new Date(now);
+    expiresAt.setDate(now.getDate() + expiryDays);
+    
+    // Update the key to reset its expiry date
+    const updatedKey: Key = { 
+      ...key, 
+      expiresAt,
+      isActive: true  // Ensure the key is active after reset
+    };
+    
+    this.keys.set(id, updatedKey);
+    
+    // Update in reseller's json file
+    await this.updateResellerKeyFile(updatedKey.createdBy, updatedKey);
+    
+    // Remove any device registrations for this key
+    await this.removeDeviceRegistrationsForKey(id);
+    
+    return updatedKey;
+  }
+  
+  private async removeDeviceRegistrationsForKey(keyId: number): Promise<void> {
+    await this.loadDeviceRegistrations();
+    
+    // Find all registrations for this key
+    const keysToRemove: number[] = [];
+    for (const [id, reg] of this.deviceRegistrations.entries()) {
+      if (reg.keyId === keyId) {
+        keysToRemove.push(id);
+      }
+    }
+    
+    // Remove the registrations
+    for (const id of keysToRemove) {
+      this.deviceRegistrations.delete(id);
+    }
+    
+    // Save changes to device.json
+    await this.saveDeviceRegistrations();
+  }
+  
   // Device registration methods
   async registerDevice(registration: InsertDeviceRegistration): Promise<DeviceRegistration> {
     await this.loadDeviceRegistrations();

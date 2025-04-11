@@ -336,6 +336,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Reset key API (reset expiry and device binding)
+  app.post('/api/reseller/keys/:id/reset', requireReseller, async (req, res) => {
+    try {
+      const keyId = parseInt(req.params.id);
+      const { expiryDays } = req.body;
+      
+      // Validate expiryDays
+      if (!expiryDays || isNaN(parseInt(expiryDays)) || parseInt(expiryDays) <= 0) {
+        return res.status(400).json({ message: 'Valid expiry days are required' });
+      }
+      
+      // Check if key exists and belongs to reseller
+      const key = await storage.getKeyById(keyId);
+      if (!key) {
+        return res.status(404).json({ message: 'Key not found' });
+      }
+      
+      if (key.createdBy !== req.session.user!.username) {
+        return res.status(403).json({ message: 'Not authorized to reset this key' });
+      }
+      
+      // Reset the key (update expiry date and remove device bindings)
+      const updatedKey = await storage.resetKey(keyId, parseInt(expiryDays));
+      
+      return res.status(200).json({ 
+        message: 'Key reset successfully. Device binding and expiry have been reset.', 
+        key: updatedKey 
+      });
+    } catch (err) {
+      return res.status(500).json({ message: 'Failed to reset key' });
+    }
+  });
+  
   // Key Verification API Endpoints (Public)
   app.get('/api/verify', async (req, res) => {
     try {
