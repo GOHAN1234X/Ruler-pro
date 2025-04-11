@@ -1,0 +1,103 @@
+hile building your code.
+Read our docs for common ways to troubleshoot your deploy.
+
+All logs
+Search
+Search
+
+Live tail
+GMT+5:30
+
+
+==> Cloning from https://github.com/GOHAN1234X/Ruler-pro
+==> Checking out commit b6449011303f0ea1335d0537b7ed5be3903d950e in branch main
+==> Using Node.js version 22.14.0 (default)
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+==> Using Bun version 1.1.0 (default)
+==> Docs on specifying a bun version: https://render.com/docs/bun-version
+==> Running build command 'npm install; npm run build'...
+added 478 packages, and audited 479 packages in 7s
+62 packages are looking for funding
+  run `npm fund` for details
+8 moderate severity vulnerabilities
+To address issues that do not require attention, run:
+  npm audit fix
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+Run `npm audit` for details.
+> rest-express@1.0.0 build
+> vite build && tsc && esbuild server/prod-server.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+vite v5.4.14 building for production...
+transforming...
+Browserslist: browsers data (caniuse-lite) is 6 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ 2072 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                                               1.92 kB │ gzip:   0.76 kB
+../dist/public/assets/orbitron-latin-400-normal-DQ4sj_VW.woff2          6.38 kB
+../dist/public/assets/bebas-neue-latin-ext-400-normal-DZC-Wzbs.woff     7.41 kB
+../dist/public/assets/orbitron-latin-400-normal-adG0u2mc.woff           8.66 kB
+../dist/public/assets/bebas-neue-latin-ext-400-normal-CH8jWPQC.woff2    8.81 kB
+../dist/public/assets/bebas-neue-latin-400-normal-Bv0c_J_s.woff        11.21 kB
+../dist/public/assets/bebas-neue-latin-400-normal-5LZebNIn.woff2       13.82 kB
+../dist/public/assets/index-tHb4LLID.css                               64.06 kB │ gzip:  11.55 kB
+../dist/public/assets/index-Cdch1zUR.js                               510.90 kB │ gzip: 156.32 kB
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 4.29s
+client/src/pages/admin/dashboard.tsx(152,36): error TS2339: Property 'resellers' does not exist on type '{}'.
+client/src/pages/admin/dashboard.tsx(153,26): error TS2339: Property 'keys' does not exist on type '{}'.
+client/src/pages/admin/dashboard.tsx(154,30): error TS2339: Property 'tokens' does not exist on type '{}'.
+client/src/pages/admin/dashboard.tsx(184,30): error TS7006: Parameter 'key' implicitly has an 'any' type.
+client/src/pages/admin/keys.tsx(25,26): error TS2339: Property 'keys' does not exist on type '{}'.
+client/src/pages/admin/keys.tsx(109,35): error TS2322: Type 'unknown' is not assignable to type 'Key | null | undefined'.
+client/src/pages/admin/keys.tsx(109,46): error TS2322: Type 'unknown' is not assignable to type 'string'.
+client/src/pages/admin/keys.tsx(109,59): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+client/src/pages/admin/resellers.tsx(133,36): error TS2339: Property 'resellers' does not exist on type '{}'.
+client/src/pages/reseller/account.tsx(119,30): error TS2339: Property 'user' does not exist on type '{}'.
+client/src/pages/reseller/account.tsx(120,32): error TS2339: Property 'credits' does not exist on type '{}'.
+client/src/pages/reseller/account.tsx(121,26): error TS2339: Property 'keys' does not exist on type '{}'.
+client/src/pages/reseller/account.tsx(124,34): error TS7006: Parameter 'key' implicitly has an 'any' type.
+client/src/pages/reseller/account.tsx(128,35): error TS7006: Parameter 'key' implicitly has an 'any' type.
+client/src/pages/reseller/account.tsx(281,42): error TS7006: Parameter 'key' implicitly has an 'any' type.
+client/src/pages/reseller/dashboard.tsx(152,30): error TS2339: Property 'user' does not exist on type '{}'.
+client/src/pages/reseller/dashboard.tsx(153,32): error TS2339: Property 'credits' does not exist on type '{}'.
+client/src/pages/reseller/dashboard.tsx(154,26): error TS2339: Property 'keys' does not exist on type '{}'.
+client/src/pages/reseller/history.tsx(23,26): error TS2339: Property 'keys' does not exist on type '{}'.
+client/src/pages/reseller/history.tsx(56,34): error TS7006: Parameter 'key' implicitly has an 'any' type.
+client/src/pages/reseller/history.tsx(59,35): error TS7006: Parameter 'key' implicitly has an 'any' type.
+client/src/pages/reseller/history.tsx(62,35): error TS7006: Parameter 'key' implicitly has an 'any' type.
+client/src/pages/reseller/keys.tsx(122,26): error TS2339: Property 'keys' does not exist on type '{}'.
+server/routes.ts(34,22): error TS2339: Property 'user' does not exist on type 'Session & Partial<SessionData>'.
+server/routes.ts(41,22): error TS2339: Property 'user' does not exist on type 'Session & Partial<SessionData>'.
+server/routes.ts(41,42): error TS2339: Property 'user' does not exist on type 'Session & Partial<SessionData>'.
+server/routes.ts(48,22): error TS2339: Property 'user' does not exist on type 'Session & Partial<SessionData>'.
+server/routes.ts(48,42): error TS2339: Property 'user' does not exist on type 'Session & Partial<SessionData>'.
+server/routes.ts(67,19): error TS2339: Property 'user' does not exist on type 'Session & Partial<SessionData>'.
+server/routes.ts(86,19): error TS2339: Property 'user' does not exist on type 'Session & Partial<SessionData>'.
+server/routes.ts(148,22): error TS2339: Property 'user' does not exist on type 'Session & Partial<SessionData>'.
+server/routes.ts(151,53): error TS2339: Property 'user' does not exist on type 'Session & Partial<SessionData>'.
+server/routes.ts(163,32): error TS2339: Property 'user' does not exist on type 'Session & Partial<SessionData>'.
+server/routes.ts(233,62): error TS2339: Property 'user' does not exist on type 'Session & Partial<SessionData>'.
+server/routes.ts(246,64): error TS2339: Property 'user' does not exist on type 'Session & Partial<SessionData>'.
+server/routes.ts(271,62): error TS2339: Property 'user' does not exist on type 'Session & Partial<SessionData>'.
+server/routes.ts(300,32): error TS2339: Property 'user' does not exist on type 'Session & Partial<SessionData>'.
+server/routes.ts(326,41): error TS2339: Property 'user' does not exist on type 'Session & Partial<SessionData>'.
+server/routes.ts(356,41): error TS2339: Property 'user' does not exist on type 'Session & Partial<SessionData>'.
+server/storage.ts(175,28): error TS2802: Type 'MapIterator<{ id: number; password: string; username: string; credits: number; }>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+server/storage.ts(237,7): error TS2353: Object literal may only specify known properties, and 'createdAt' does not exist in type '{ id: number; password: string; username: string; credits: number; }'.
+server/storage.ts(536,29): error TS2802: Type 'MapIterator<[number, { id: number; keyId: number; deviceId: string; registeredAt: Date; }]>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+server/storage.ts(574,23): error TS2802: Type 'MapIterator<{ id: number; keyId: number; deviceId: string; registeredAt: Date; }>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+server/storage.ts(585,23): error TS2802: Type 'MapIterator<{ id: number; keyId: number; deviceId: string; registeredAt: Date; }>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+server/vite.ts(39,5): error TS2322: Type '{ middlewareMode: boolean; hmr: { server: Server<typeof IncomingMessage, typeof ServerResponse>; }; allowedHosts: boolean; }' is not assignable to type 'ServerOptions'.
+  Types of property 'allowedHosts' are incompatible.
+    Type 'boolean' is not assignable to type 'true | string[] | undefined'.
+==> Build failed 😞
+==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+You can also use theRender CLIto explore logs in your command line.
+
+Looking for more logs? Try Log Stream
