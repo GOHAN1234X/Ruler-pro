@@ -138,7 +138,7 @@ export default function Login() {
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="text-6xl font-bold text-center text-primary mb-1">
+        <div className="text-4xl text-center text-primary mb-1 font-action">
           <span className="inline-block transform hover:scale-105 transition-transform duration-300">X-Ruler</span>
         </div>
         <div className="flex items-center space-x-2 mt-2">

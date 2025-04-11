@@ -1,6 +1,8 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import "@fontsource/bebas-neue";
+import "@fontsource/orbitron";
 
 // Import material icons
 const materialIconsLink = document.createElement("link");
