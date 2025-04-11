@@ -77,8 +77,64 @@ export class MemStorage implements IStorage {
     
     this.dataDir = path.join(process.cwd(), 'data');
     
-    // Load data from files if they exist
-    this.loadData();
+    // Initialize data files and load data
+    this.init();
+  }
+  
+  private async init() {
+    await this.ensureDataDirectory();
+    
+    // Initialize admin.json if it doesn't exist
+    const adminFile = path.join(this.dataDir, 'admin.json');
+    if (!fs.existsSync(adminFile)) {
+      await fs.promises.writeFile(
+        adminFile, 
+        JSON.stringify({ admin: { username: 'admin', password: '&-+(' } }), 
+        'utf8'
+      );
+    }
+    
+    // Initialize token.json if it doesn't exist
+    const tokenFile = path.join(this.dataDir, 'token.json');
+    if (!fs.existsSync(tokenFile)) {
+      await fs.promises.writeFile(
+        tokenFile, 
+        JSON.stringify({ tokens: [] }), 
+        'utf8'
+      );
+    }
+    
+    // Initialize reseller.json if it doesn't exist
+    const resellerFile = path.join(this.dataDir, 'reseller.json');
+    if (!fs.existsSync(resellerFile)) {
+      await fs.promises.writeFile(
+        resellerFile, 
+        JSON.stringify({ resellers: [] }), 
+        'utf8'
+      );
+    }
+    
+    // Initialize device.json if it doesn't exist
+    const deviceFile = path.join(this.dataDir, 'device.json');
+    if (!fs.existsSync(deviceFile)) {
+      await fs.promises.writeFile(
+        deviceFile, 
+        JSON.stringify({ devices: [] }), 
+        'utf8'
+      );
+    }
+    
+    // Load initial data
+    await this.loadAdminData();
+    await this.loadReferralTokens();
+    await this.loadResellers();
+    await this.loadDeviceRegistrations();
+    
+    // Load individual reseller key files
+    const resellerUsernames = Array.from(this.resellers.values()).map(r => r.username);
+    for (const username of resellerUsernames) {
+      await this.getKeysByReseller(username);
+    }
   }
   
   // Admin methods
@@ -413,7 +469,18 @@ export class MemStorage implements IStorage {
   }
   
   async getAllKeys(): Promise<Key[]> {
-    return Array.from(this.keys.values());
+    // Load all resellers first to get usernames
+    await this.loadResellers();
+    const resellers = await this.getAllResellers();
+    
+    // Collect keys from all reseller files
+    let allKeys: Key[] = [];
+    for (const reseller of resellers) {
+      const keys = await this.getKeysByReseller(reseller.username);
+      allKeys = [...allKeys, ...keys];
+    }
+    
+    return allKeys;
   }
   
   async deactivateKey(id: number): Promise<Key | undefined> {
@@ -433,6 +500,8 @@ export class MemStorage implements IStorage {
   
   // Device registration methods
   async registerDevice(registration: InsertDeviceRegistration): Promise<DeviceRegistration> {
+    await this.loadDeviceRegistrations();
+    
     const id = this.currentDeviceRegistrationId++;
     const newRegistration: DeviceRegistration = { 
       ...registration, 
@@ -441,11 +510,16 @@ export class MemStorage implements IStorage {
     };
     
     this.deviceRegistrations.set(id, newRegistration);
-    await this.saveData();
+    
+    // Save directly to device registration file
+    await this.saveDeviceRegistrations();
+    
     return newRegistration;
   }
   
   async getDeviceRegistrationsByKey(keyId: number): Promise<DeviceRegistration[]> {
+    await this.loadDeviceRegistrations();
+    
     const registrations: DeviceRegistration[] = [];
     for (const reg of this.deviceRegistrations.values()) {
       if (reg.keyId === keyId) {
@@ -456,12 +530,53 @@ export class MemStorage implements IStorage {
   }
   
   async getDeviceRegistrationByKeyAndDevice(keyId: number, deviceId: string): Promise<DeviceRegistration | undefined> {
+    await this.loadDeviceRegistrations();
+    
     for (const reg of this.deviceRegistrations.values()) {
       if (reg.keyId === keyId && reg.deviceId === deviceId) {
         return reg;
       }
     }
     return undefined;
+  }
+  
+  private async loadDeviceRegistrations(): Promise<void> {
+    const deviceFile = path.join(this.dataDir, 'device.json');
+    if (fs.existsSync(deviceFile)) {
+      try {
+        const deviceData = await fs.promises.readFile(deviceFile, 'utf8');
+        const { devices } = JSON.parse(deviceData);
+        
+        // Clear existing device registrations
+        this.deviceRegistrations.clear();
+        
+        if (devices && Array.isArray(devices)) {
+          for (const device of devices) {
+            this.deviceRegistrations.set(device.id, {
+              ...device,
+              registeredAt: new Date(device.registeredAt)
+            });
+          }
+          
+          if (devices.length > 0) {
+            this.currentDeviceRegistrationId = Math.max(...devices.map((d: DeviceRegistration) => d.id), 0) + 1;
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load device registration data:', error);
+      }
+    }
+  }
+  
+  private async saveDeviceRegistrations(): Promise<void> {
+    await this.ensureDataDirectory();
+    
+    const deviceFile = path.join(this.dataDir, 'device.json');
+    const deviceData = {
+      devices: Array.from(this.deviceRegistrations.values())
+    };
+    
+    await fs.promises.writeFile(deviceFile, JSON.stringify(deviceData, null, 2), 'utf8');
   }
   
   // Data persistence
